@@ -13,6 +13,10 @@ const Card = styled(Link)<{ $important?: boolean }>`
 
   & > div {
     padding: 16px;
+    font-size: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 
     h4 {
       margin: 0px;
@@ -53,7 +57,6 @@ const Tags = styled.div`
 
 export function Ad(
   props: AdType & {
-    onAddToCart?: () => void;
     important?: boolean;
   }
 ) {
@@ -69,11 +72,6 @@ export function Ad(
           ))}
         </Tags>
       </div>
-      {/*   {props.onAddToCart && (
-        <button className="button" onClick={props.onAddToCart}>
-          Ajouter au panier
-        </button>
-      )} */}
     </Card>
   );
 }

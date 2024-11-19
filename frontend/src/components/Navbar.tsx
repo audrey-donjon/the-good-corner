@@ -1,29 +1,25 @@
-import { useEffect, useState } from "react";
+import { queryCategories } from "../api/categories";
+import { CategoryType } from "../types";
 import { Link } from "react-router-dom";
 import { Category } from "./Category";
-import axios from "axios";
-import { CategoryType } from "../types";
+import { useQuery} from "@apollo/client"; 
 
 export function Navbar() {
-  const [categories, setCategories] = useState<CategoryType[]>([]);
-
-  useEffect(() => {
-    async function fetch() {
-      const result = await axios.get<CategoryType[]>(
-        "http://127.0.0.1:5000/categories"
-      );
-      setCategories(result.data);
-    }
-    fetch();
-  }, []);
-
+  const { data, loading, error } = useQuery<{ categories: CategoryType[] }>(
+    queryCategories
+  );
+  if (error) return <p>Error : {error.message}</p>;
+  const categories = data?.categories;
   return (
     <header className="header">
       <div className="main-menu">
         <h1>
-          <Link to="/" className="button logo link-button">
-            <span className="mobile-short-label">TGC</span>
-            <span className="desktop-long-label">THE GOOD CORNER</span>
+          <Link to="/" className="button button-logo logo link-button">
+          <span className="mobile-short-label">TGC</span>
+            <div className="container-logo">
+              <img className="desktop-long-label logo-style" src="./../../logo.png" alt="logo" />
+              <span className="desktop-long-label">THE GOOD CORNER</span>
+            </div>
           </Link>
         </h1>
         <form className="text-field-with-button">
@@ -51,9 +47,11 @@ export function Navbar() {
         </Link>
       </div>
       <nav className="categories-navigation">
-        {categories.map((category) => (
-          <Category name={category.name} id={category.id} key={category.id} />
+        {loading === true && <p>Chargement</p>}
+        {categories?.map((category) => (
+            <Category name={category.name} id={category.id} key={category.id}/>
         ))}
+        <span className="categories-separator">•</span>
       </nav>
     </header>
   );

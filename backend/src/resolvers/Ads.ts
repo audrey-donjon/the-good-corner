@@ -1,6 +1,8 @@
 import { Arg, ID, Mutation, Query, Resolver } from "type-graphql";
 import { Ad, AdCreateInput, AdUpdateInput } from "../entities/Ad";
 import { validate } from "class-validator";
+import { Tag } from "../entities/Tag";
+import { In } from "typeorm";
 
 @Resolver()
 export class AdsResolver {
@@ -52,9 +54,21 @@ export class AdsResolver {
     @Arg("id", () => ID) id: number,
     @Arg("data", () => AdUpdateInput) data: AdUpdateInput
   ): Promise<Ad | null> {
-    const ad = await Ad.findOneBy({ id });
+    const ad = await Ad.findOne({ 
+      where: { id },
+      relations: {
+        tags: true,
+      },
+    });
     if (ad !== null) {
       Object.assign(ad, data);
+
+    // Si `data.tags` contient des tags, remplacer les objets par des instances réelles (car bug sur relation many to many pour l'update)
+    if(data.tags && data.tags.length) {
+      const tagIds = data.tags.map(tag => tag.id); // Extraire les IDs des tags
+      const realtAgs = await Tag.findBy({id: In(tagIds)}) // Rechercher les tags correspondants dans la base de données
+      ad.tags = realtAgs; // Remplacer les tags par les instances réelles
+    }
 
       const errors = await validate(ad);
       if (errors.length > 0) {
@@ -73,6 +87,7 @@ export class AdsResolver {
     const ad = await Ad.findOneBy({ id });
     if (ad !== null) {
       await ad.remove();
+      Object.assign(ad, { id });
       return ad;
     } else {
       return null;

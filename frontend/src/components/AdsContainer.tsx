@@ -1,15 +1,9 @@
 import styled from "styled-components";
 
 const AdsContainer = styled.section`
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-
-  & > * {
-    width: 30%;
-    min-width: 300px;
-  }
 `;
 
 export default AdsContainer;

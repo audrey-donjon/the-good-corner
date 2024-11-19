@@ -37,7 +37,7 @@ export class Ad extends BaseEntity {
   tags!: Tag[];
 
   @Column()
-  @Length(10, 100, { message: "Title must be between 10 and 100 chars" })
+  @Length(8, 100, { message: "Title must be between 8 and 100 chars" })
   @Field()
   title!: string;
 
@@ -83,7 +83,7 @@ export class AdCreateInput {
   @Field(() => [IdInput])
   tags!: IdInput[];
 
-  @Length(10, 100, { message: "Title must be between 10 and 100 chars" })
+  @Length(8, 100, { message: "Title must be between 8 and 100 chars" })
   @Field()
   title!: string;
 

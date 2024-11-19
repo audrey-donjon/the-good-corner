@@ -14,6 +14,27 @@ h1 {
   margin: 0;
 }
 
+.header .main-menu h1 .desktop-long-label{
+  font-size: 24px;
+}
+
+.header .main-menu h1 a:hover{
+  text-decoration: underline 2px;
+  color: #ffa41b;
+  background-color: white;
+}
+
+.container-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.container-logo img {
+  width: 40px;
+  height: 40px;
+}
+
 .header {
   position: fixed;
   top: 0;
@@ -30,6 +51,11 @@ h1 {
   align-items: center;
   gap: 10px;
   color: #ffa41b;
+}
+
+.editor-container{
+  border: #000000 solid 1px;
+  padding: 20px;
 }
 
 .categories-navigation {
@@ -62,13 +88,38 @@ h1 {
   background-color: white;
   cursor: pointer;
 }
+.button:hover {
+  background-color: #ffa41b;
+  color: white;
+}
 
 .logo {
   border: none;
 }
 
+.button-form {
+  font-size: 20px;
+  padding: 25px 10px;
+  align-self: baseline;
+}
+
 .button-primary {
-  background-color: #ffa41b;
+  background-color: #bd7303;
+  color: white;
+  align-self: baseline;
+}
+.button-secondary {
+  background-color: #4d3005;
+  color: white;
+}
+
+.button.button-delete {
+  color: #740b0b;
+  background-color:initial;
+  border: #740b0b solid 1px;
+}
+.button.button-delete:hover {
+  background-color: #740b0b;
   color: white;
 }
 
@@ -100,6 +151,44 @@ h1 {
   text-decoration: none;
 }
 
+
+ /*Style du formulaire*/
+.style-form-editor-title{
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* Espace entre l'icône et le texte */
+}
+
+.style-form-editor-ads{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+}
+.style-form-editor-ads div{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.main-content div .style-form-editor-ads .style-form-container-tags{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.main-content div .style-form-editor-ads .style-form-container-tags .checkbox-tag{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .desktop-long-label {
   display: none;
 }
@@ -116,11 +205,27 @@ h1 {
   gap: 16px;
 }
 
+.ads-container{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
 .ad-card-container {
-  border-radius: 8px;
+  border-radius: 8px ;
   border: 1px solid lightgray;
   color: inherit;
   background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+.ad-card-container:hover {
+  box-shadow: 0px 0px 30px -10px #000000;
+  transform: translateY(-10px);
+
 }
 
 .ad-card-link {
@@ -130,13 +235,16 @@ h1 {
 
 .ad-card-image {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
+  height: 200px;
+  object-fit: cover;
 }
 
 .ad-card-text {
   padding: 12px;
   font-size: 18px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
@@ -158,6 +266,27 @@ h1 {
   gap: 24px;
 }
 
+.button-card{
+  width: 80%;
+  margin: auto;
+  margin-bottom: 20px;
+}
+
+/*Infos d'une annonce*/
+.ad-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ad-info-container div {
+  width: 100%;
+}
+
+.ad-info-container div img{
+  max-width: 500px;
+}
+
 @media screen and (min-width: 720px) {
   .mobile-short-label {
     display: none;
@@ -169,7 +298,11 @@ h1 {
   .categories-navigation {
     padding-top: 14px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
+  }
+
+  .categories-separator{
+    font-size: 12px;
   }
 
   .ad-details-image-container {

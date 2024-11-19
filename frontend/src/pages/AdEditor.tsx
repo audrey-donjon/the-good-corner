@@ -1,42 +1,43 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { AdType, CategoryType, TagType } from "../types";
 import { useNavigate, useParams } from "react-router-dom";
 import { CategoryEditor } from "../components/CategoryEditor";
 import { TagEditor } from "../components/TagEditor";
+import { useMutation, useQuery } from "@apollo/client";
+import { queryCategories } from "../api/categories";
+import { queryTags } from "../api/tags";
+import { queryAd } from "../api/ad";
+import { queryAds } from "../api/ads";
+import { mutationCreateAd } from "../api/createAd";
+import { mutationUpdateAd } from "../api/updateAd";
 
 export function AdEditorPage() {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
   const id = params.id && Number(params.id);
 
-  const [ad, setAd] = useState<AdType>();
-
-  useEffect(() => {
-    if (id) {
-      async function fetch() {
-        const result = await axios.get<AdType>(
-          `http://localhost:5000/ads/${id}`
-        );
-        setAd(result.data);
-      }
-      fetch();
-    }
-  }, [id]);
+  const { data } = useQuery<{ad: AdType}>(queryAd, { 
+    variables: { 
+      id 
+    },
+    skip: !id
+  });
+  const ad = data?.ad;
 
   const [error, setError] = useState<string>();
 
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState("Super vélo 2");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
-  const [location, setLocation] = useState("");
-  const [picture, setPicture] = useState("");
-  const [owner, setOwner] = useState("");
+  const [location, setLocation] = useState("Paris");
+  const [picture, setPicture] = useState("https://cdn.pixabay.com/photo/2019/03/11/04/47/folding-4047804_1280.jpg");
+  const [owner, setOwner] = useState("alice@gmail.com");
   const [categoryId, setCategoryId] = useState<number>();
   const [tagsIds, setTagsIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (ad) {
+      // Mode édition : charger les données de l'annonce existante
       setTitle(ad.title);
       setDescription(ad.description);
       setPrice(ad.price);
@@ -44,45 +45,59 @@ export function AdEditorPage() {
       setPicture(ad.picture);
       setOwner(ad.owner);
       setCategoryId(ad.category?.id);
-
-      const tagsIds: number[] = [];
-      for (const tag of ad.tags) {
-        tagsIds.push(tag.id);
-      }
+  
+      const tagsIds: number[] = ad.tags.map((tag) => tag.id); // Récupérer les IDs des tags
       setTagsIds(tagsIds);
+    } else {
+      // Mode création : réinitialiser les champs
+      setTitle("");
+      setDescription("");
+      setPrice(0);
+      setLocation("Paris");
+      setPicture("");
+      setOwner("");
+      setCategoryId(undefined);
+      setTagsIds([]); // Réinitialiser les tags
     }
-  }, [ad]);
+  }, [ad, id]);
 
-  const [categories, setCategories] = useState<CategoryType[]>([]);
-  const [tags, setTags] = useState<TagType[]>([]);
-
-  async function fetchCategories() {
-    const result = await axios.get<CategoryType[]>(
-      "http://127.0.0.1:5000/categories"
-    );
-    setCategories(result.data);
-    if (result.data.length !== 0) {
-      setCategoryId(result.data[0].id);
-    }
-  }
-
-  async function fetchTags() {
-    const result = await axios.get<TagType[]>("http://127.0.0.1:5000/tags");
-    setTags(result.data);
-  }
-
+  const { data: categoriesData } = useQuery<{ categories: CategoryType[] }>(
+    queryCategories
+  );
+  const categories = categoriesData?.categories;
   useEffect(() => {
-    fetchCategories();
-    fetchTags();
-  }, []);
+    if (categories && categories.length && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories]);
+
+  const { data: tagsData} = useQuery<{ tags: TagType[] }>(
+    queryTags
+  );
+  const tags = tagsData?.tags;
+
+  const [doCreateAd, { loading: createLoading }] = useMutation<{
+    createAd: AdType;
+  }>(mutationCreateAd,{
+    refetchQueries: [queryAds],
+  });
+
+  const [doUpdateAd, { loading: UpdateLoading }] = useMutation<{
+    updateAd: AdType;
+  }>(mutationUpdateAd, {
+    refetchQueries: [queryAds, queryAd],
+  });
+
+  const loading = createLoading || UpdateLoading;
 
   async function doSubmit() {
     setError(undefined);
     try {
       if (ad) {
-        const result = await axios.put<AdType>(
-          `http://localhost:5000/ads/${ad.id}`,
-          {
+        const { data } = await doUpdateAd({
+          variables:{
+            id: ad.id,
+            data: {
             title,
             description,
             price,
@@ -92,20 +107,25 @@ export function AdEditorPage() {
             category: categoryId ? { id: categoryId } : null,
             tags: tagsIds.map((id) => ({ id })),
           }
-        );
-        navigate(`/ads/${result.data.id}`, { replace: true });
+        }
+      });
+        navigate(`/ads/${data?.updateAd.id}`, { replace: true });
       } else {
-        const result = await axios.post<AdType>("http://localhost:5000/ads", {
-          title,
-          description,
-          price,
-          location,
-          picture,
-          owner,
-          category: categoryId ? { id: categoryId } : null,
-          tags: tagsIds.map((id) => ({ id })),
+        const { data } = await doCreateAd({
+          variables:{
+            data: {
+              title,
+              description,
+              price,
+              location,
+              picture,
+              owner,
+              category: categoryId ? { id: categoryId } : null,
+              tags: tagsIds.map((id) => ({ id })),
+            }
+          }
         });
-        navigate(`/ads/${result.data.id}`, { replace: true });
+        navigate(`/ads/${data?.createAd.id}`, { replace: true });
       }
     } catch (err) {
       console.error(err);
@@ -191,7 +211,7 @@ export function AdEditorPage() {
             value={categoryId}
             onChange={(e) => setCategoryId(Number(e.target.value))}
           >
-            {categories.map((category) => (
+            {categories?.map((category) => (
               <option value={category.id} key={category.id}>
                 {category.name}
               </option>
@@ -210,7 +230,7 @@ export function AdEditorPage() {
           <CategoryEditor
             onCategoryCreated={async (id) => {
               setShowCategoryEditor(false);
-              await fetchCategories();
+              // await fetchCategories();
               setCategoryId(id);
             }}
           />
@@ -218,32 +238,16 @@ export function AdEditorPage() {
         <br />
         <div>
           Tags :
-          {tags.map((tag) => (
+          {tags?.map((tag) => (
             <label key={tag.id}>
               <input
                 type="checkbox"
                 checked={tagsIds.includes(tag.id) === true}
-                onClick={() => {
-                  if (tagsIds.includes(tag.id) === true) {
-                    const newArray = [];
-                    for (const entry of tagsIds) {
-                      if (entry !== tag.id) {
-                        newArray.push(entry);
-                      }
-                    }
-                    // const newArray = tagsIds.filter(t => tag.id !== t.id)
-
-                    setTagsIds(newArray);
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setTagsIds([...tagsIds, tag.id]);
                   } else {
-                    tagsIds.push(tag.id);
-
-                    const newArray = [];
-                    for (const entry of tagsIds) {
-                      newArray.push(entry);
-                    }
-                    // const newArray = tagsIds.slice()
-
-                    setTagsIds(newArray);
+                    setTagsIds(tagsIds.filter((entry) => entry !== tag.id));
                   }
                 }}
               />
@@ -263,7 +267,7 @@ export function AdEditorPage() {
           <TagEditor
             onTagCreated={async (id) => {
               setShowTagEditor(false);
-              await fetchTags();
+              // await fetchTags();
               tagsIds.push(id);
               setTagsIds([...tagsIds]);
             }}
@@ -272,6 +276,7 @@ export function AdEditorPage() {
         <br />
         <br />
         <button>{ad ? "Modifier mon annonce" : "Créer mon annonce"}</button>
+        {loading === true && <p>Chargement...</p>}
       </form>
     </div>
   );
