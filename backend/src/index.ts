@@ -1,3 +1,4 @@
+import { UsersResolver } from './resolvers/Users';
 import "reflect-metadata";
 import { datasource } from "./datasource";
 import { buildSchema } from "type-graphql";
@@ -7,19 +8,30 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { CategoriesResolver } from "./resolvers/Categories";
 import { AdsResolver } from "./resolvers/Ads";
 import { TagsResolver } from "./resolvers/Tags";
+import { authChecker } from './auth';
 
 async function initialize() {
   await datasource.initialize();
   console.log("Datasource is connected");
 
   const schema = await buildSchema({
-    resolvers: [CategoriesResolver, AdsResolver, TagsResolver],
+    resolvers: [UsersResolver, CategoriesResolver, AdsResolver, TagsResolver],
+    authChecker,
   });
 
   const server = new ApolloServer({ schema });
 
   const { url } = await startStandaloneServer(server, {
     listen: { port: 5000 },
+    context: async({req, res})=>{
+      // get token cookies
+      // use the cookies Cookies.get
+      // Look at authchecker
+      return {
+        req,
+        res,
+      }
+    }
   });
   console.log(`GraphQL server ready at ${url}`);
 }

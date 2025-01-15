@@ -301,10 +301,6 @@ h1 {
     justify-content: space-around;
   }
 
-  .categories-separator{
-    font-size: 12px;
-  }
-
   .ad-details-image-container {
     margin-inline-start: unset;
     margin-inline-end: unset;

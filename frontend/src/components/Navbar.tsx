@@ -51,7 +51,6 @@ export function Navbar() {
         {categories?.map((category) => (
             <Category name={category.name} id={category.id} key={category.id}/>
         ))}
-        <span className="categories-separator">•</span>
       </nav>
     </header>
   );

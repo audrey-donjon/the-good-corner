@@ -1,0 +1,44 @@
+services:
+  front:
+    build: ./frontend
+    # ou image: mongo
+    ports:
+      - "5173:5173" # host_port:container_port
+    volumes:
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+
+  back:
+    build: ./backend
+    ports:
+      - 5000:5000 # host_port:container_port
+    # environment:
+    #   - CHOKIDAR_USEPOLLING=true
+    env_file:
+      - database.env
+      - backend.env
+    volumes:
+    - ./backend/src:/app/src
+    - ./backend/database:/app/database
+
+  db:
+    image: postgres
+    ports:
+      - 5432:5432 # host_port:container_port
+    env_file:
+      - database.env
+    volumes:
+      # enough for local dev
+      # - /var/lib/postgresql/data # creating anonymous volume
+      - dbdata:/var/lib/postgresql/data
+    # environment:
+    #   - POSTGRES_PASSWORD= postgres
+    #   - POSTGRES_USER= thegoodcorner
+    #   - POSTGRES_DB= thegoodcorner
+
+    
+volumes:
+  dbdata:
+    driver: local

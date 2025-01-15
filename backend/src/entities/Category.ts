@@ -1,13 +1,16 @@
 import {
   BaseEntity,
   Column,
+  CreateDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  ManyToOne,
 } from "typeorm";
 import { Ad } from "./Ad";
 import { Field, ID, InputType, ObjectType } from "type-graphql";
 import { Length } from "class-validator";
+import { User } from "./User";
 
 // like { createdAt user }
 @ObjectType()
@@ -37,7 +40,6 @@ export class Category extends BaseEntity {
 
   @Field(() => [CategoryLike])
   likes() {
-    console.log("Computed");
     return [
       {
         createdAt: new Date(),
@@ -45,6 +47,14 @@ export class Category extends BaseEntity {
       },
     ];
   }
+
+  @CreateDateColumn()
+  @Field()
+  createdAt: Date;
+
+  @ManyToOne(() => User)
+  @Field(() => User)
+  createdBy: User;
 }
 
 @InputType()
