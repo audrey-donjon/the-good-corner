@@ -12,7 +12,6 @@ import { authChecker } from './auth';
 
 async function initialize() {
   await datasource.initialize();
-  console.log("Datasource is connected");
 
   const schema = await buildSchema({
     resolvers: [UsersResolver, CategoriesResolver, AdsResolver, TagsResolver],
@@ -33,7 +32,6 @@ async function initialize() {
       }
     }
   });
-  console.log(`GraphQL server ready at ${url}`);
 }
 
 initialize();

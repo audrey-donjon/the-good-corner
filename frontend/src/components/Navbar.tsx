@@ -2,14 +2,27 @@ import { queryCategories } from "../api/categories";
 import { CategoryType } from "../types";
 import { Link } from "react-router-dom";
 import { Category } from "./Category";
-import { useQuery} from "@apollo/client"; 
+import { useMutation, useQuery} from "@apollo/client";
+import { queryWhoami } from "../api/whoiam";
+import { mutationSignout } from "../api/signout";
 
 export function Navbar() {
-  const { data, loading, error } = useQuery<{ categories: CategoryType[] }>(
+  const { data: categoriesData, loading } = useQuery<{ categories: CategoryType[] }>(
     queryCategories
   );
-  if (error) return <p>Error : {error.message}</p>;
-  const categories = data?.categories;
+
+  const categories = categoriesData?.categories;
+
+  const { data: whoamiData } = useQuery(queryWhoami);
+  const me = whoamiData?.whoami;
+
+  const [doSignout] = useMutation(mutationSignout,{
+    refetchQueries: [queryWhoami]
+  });
+  async function onSignout(){
+    doSignout();
+  }
+
   return (
     <header className="header">
       <div className="main-menu">
@@ -41,10 +54,28 @@ export function Navbar() {
             </svg>
           </button>
         </form>
-        <Link to="/ads/new" className="button link-button">
-          <span className="mobile-short-label">Publier</span>
-          <span className="desktop-long-label">Publier une annonce</span>
-        </Link>
+        {me ? (
+          <>
+            <Link to="/ads/new" className="button link-button">
+              <span className="desktop-long-label">+ Annonce</span>
+            </Link>
+
+            <button onClick={onSignout} className="button link-button">
+              <span className="desktop-long-label">Déconnexion</span>
+            </button>
+          </>
+        ) : me === null ? (
+          <>
+            <Link to="/signin" className="button link-button">
+              <span className="desktop-long-label">Connexion</span>
+            </Link>
+
+            <Link to="/signup" className="button link-button">
+              <span className="desktop-long-label">Inscription</span>
+            </Link>
+          </>
+        ) : null }
+
       </div>
       <nav className="categories-navigation">
         {loading === true && <p>Chargement</p>}

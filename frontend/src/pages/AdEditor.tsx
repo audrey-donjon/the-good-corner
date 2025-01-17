@@ -45,7 +45,7 @@ export function AdEditorPage() {
       setPicture(ad.picture);
       setOwner(ad.owner);
       setCategoryId(ad.category?.id);
-  
+
       const tagsIds: number[] = ad.tags.map((tag) => tag.id); // Récupérer les IDs des tags
       setTagsIds(tagsIds);
     } else {

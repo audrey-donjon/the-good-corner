@@ -6,25 +6,41 @@ import { PageLayout } from "./components/Layout";
 import { AdPage } from "./pages/Ad";
 import { AdEditorPage } from "./pages/AdEditor";
 import { CategoryPage } from "./pages/Category";
-import { ApolloClient, InMemoryCache, gql, ApolloProvider } from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider, useQuery } from "@apollo/client";
+import { SigninPage } from "./pages/Signin";
+import { SignupPage } from "./pages/Signup";
+import { queryWhoami } from "./api/whoiam";
 
 const client = new ApolloClient({
-  uri: "http://localhost:5000",
+  uri: "/api",
   cache: new InMemoryCache(),
+  credentials: "same-origin",
 });
 
-client
-  .query({
-    query: gql`
-      query categories {
-      categories {
-        id
-        name
-      }
+enum AuthState {
+  authenticated,
+  unauthenticated,
+}
+
+function checkAuth(Component: React.FC, authStates:AuthState[], redirectTo: string = "/"){
+  // Component function
+  return function(){
+    const { data: whoamiData } = useQuery(queryWhoami);
+    const me = whoamiData?.whoami;
+    if(me === undefined){
+      return <div>Loading...</div>;
     }
-    `,
-  })
-  .then((result) => console.log(result));
+
+    if(
+      (me === null && authStates.includes(AuthState.unauthenticated)) ||
+      (me === authStates.includes(AuthState.authenticated))
+    ){
+      return <Component />;
+    }
+
+    return <Navigate to={redirectTo} replace/>;
+  }
+}
 
 function App() {
   return (
@@ -33,10 +49,12 @@ function App() {
         <Routes>
           <Route Component={PageLayout}>
             <Route path="/" Component={HomePage} />
+            <Route path="/signin" Component={checkAuth(SigninPage, [AuthState.unauthenticated])} />
+            <Route path="/signup" Component={checkAuth(SignupPage, [AuthState.unauthenticated])} />
             <Route path="/categories/:id" Component={CategoryPage} />
             <Route path="/ads/:id" Component={AdPage} />
-            <Route path="/ads/:id/edit" Component={AdEditorPage} />
-            <Route path="/ads/new" Component={AdEditorPage} />
+            <Route path="/ads/:id/edit" Component={checkAuth(AdEditorPage, [AuthState.authenticated])} />
+            <Route path="/ads/new" Component={checkAuth(AdEditorPage, [AuthState.authenticated])} />
             <Route path="/about" Component={AboutPage} />
             <Route path="*" Component={() => <Navigate to="/" />} />
           </Route>
