@@ -22,7 +22,6 @@
 
 - Ajout de fonctionnalités de panier pour permettre aux utilisateurs de réserver et payer des annonces en ligne.
 - Gestion avancée des CORS en production. 🛒🔒
-
 ---
 
 ## **Technologies utilisées** 🎨💻
